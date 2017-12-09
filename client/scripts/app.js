@@ -6,12 +6,15 @@ var app = {
   username: 'anonymous',
   
 
-  init: function() {
-  }
+};
 
-
-
-
+app.init = function() {
+  app.fetch();
+  $('#submit').on('click', function(event) {
+    //pass input message to app.send
+    app.send($('#message').val());
+    // pass input message to rendermessage to show input message
+  });
 };
 
 
@@ -34,12 +37,16 @@ app.send = function(message) {
 app.fetch = function() {
   $.ajax({
       // This is the url you should use to communicate with the parse API server.
-    url: undefined,
+    url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
     type: 'GET',
-    data: message,
+    data: {order: '-createdAt' },
     contentType: 'application/json',
     success: function (data) {
-      console.log('chatterbox: Message received');
+      //console.log(data)
+      data.results.forEach(function(ele) {
+        app.renderMessage(ele);
+      });
+      
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -48,15 +55,14 @@ app.fetch = function() {
   }); 
 };
 
-app.clearMessages = function() {
-  $('#chats').html('');
-};
+// app.clearMessages = function() {
+//   $('#chats').html('');
+// };
 
 app.renderMessage = function(message) {
-  this.clearMessages();
-  var newNode = document.createElement('span');
-  newNode.append(message.text);
-  $('#chats').append(newNode);
+  //this.clearMessages();
+  $('#chats').append($(`<h3 class='username'> ${message.username}</h3>`));
+  $('#chats').append($(`<p class='text'> ${message.text}</p>`));
 };
 
 app.renderRoom = function(room) {
@@ -65,3 +71,11 @@ app.renderRoom = function(room) {
   $('#roomSelect').append(newNode);
 };
 
+// var message = {
+//   username: 'Mel Brooks',
+//   text: 'Never underestimate the power of the Schwartz!',
+//   roomname: 'lobby'
+// };
+$( document ).ready(function() {
+  app.init();
+});
