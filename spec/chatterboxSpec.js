@@ -12,7 +12,7 @@ describe('chatterbox', function() {
 
   describe('app behavior', function() {
     var ajaxSpy;
-
+  
     before(function() {
       ajaxSpy = sinon.stub($, 'ajax');
       app.init();
