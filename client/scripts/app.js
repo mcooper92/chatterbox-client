@@ -1,39 +1,62 @@
 // YOUR CODE HERE:
-var app = {
+var app = {};
+var messageObject = function(message, roomname) {
   
-  roomname: 'lobby',
-  messages: [],
-  username: 'anonymous',
-  
+  this.roomname = roomname;
+  this.text = message;
+  this.username = window.location.search.split('username=')[1];
 
 };
 
 app.init = function() {
+  var roomname;
+  console.log(document.getElementById('roomSelect').value);
+  roomname = document.getElementById('roomSelect').value;
   app.fetch();
-  $('#submit').on('click', function(event) {
-    //pass input message to app.send
-    app.send($('#message').val());
-    // pass input message to rendermessage to show input message
+  $('#send').submit(function(event) {
+    var message = document.getElementById('inputMessage').value;
+    var newMessage = new messageObject(message, roomname);
+    console.log(newMessage);
+    app.send(newMessage);
+    event.preventDefault();
+  });
+  $('button').click(function(event) {
+    window.location.reload();
+  });
+  $('#newRoom').submit(function(event) {
+    var brandNewRoom = document.getElementById('inputRoom').value;
+    app.addRoom(brandNewRoom);
+    event.preventDefault();
   });
 };
+
+function myFunction(val) {
+  roomname = val;
+  var message = document.getElementById('inputMessage').value;
+  var newMessage = new messageObject(message, roomname);
+  console.log(newMessage);
+}
 
 
 app.send = function(message) {
   $.ajax({
-      // This is the url you should use to communicate with the parse API server.
     url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
     type: 'POST',
-    data: message,
+    data: JSON.stringify(message),
     contentType: 'application/json',
     success: function (data) {
+      // data = JSON.parse(data);
+      data.text = message.text;
+      data.roomname = message.roomname;
+      data.username = message.username;
       console.log('chatterbox: Message sent');
     },
     error: function (data) {
-      // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message', data);
     }
   }); 
 };
+
 app.fetch = function() {
   $.ajax({
       // This is the url you should use to communicate with the parse API server.
@@ -42,14 +65,19 @@ app.fetch = function() {
     data: {order: '-createdAt' },
     contentType: 'application/json',
     success: function (data) {
-      //console.log(data)
+  //    console.log(data)
+      var newArr = [];
       data.results.forEach(function(ele) {
+        newArr.push(ele.roomname);
         app.renderMessage(ele);
       });
-      
+
+      var uniqueArr = _.uniq(newArr);
+      uniqueArr.forEach(function(eachRoom) {
+        app.addRoom(eachRoom);
+      });
     },
     error: function (data) {
-      // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to receive message', data);
     }
   }); 
@@ -71,11 +99,10 @@ app.renderRoom = function(room) {
   $('#roomSelect').append(newNode);
 };
 
-// var message = {
-//   username: 'Mel Brooks',
-//   text: 'Never underestimate the power of the Schwartz!',
-//   roomname: 'lobby'
-// };
+app.addRoom = function(eachRoom) {
+  $('#roomSelect').append($(`<option>${eachRoom}</option>`));
+};
+
 $( document ).ready(function() {
   app.init();
 });
